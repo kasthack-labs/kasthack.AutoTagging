@@ -25,7 +25,7 @@ I needed to tag database queries in an existing project without rewriting tons o
 * Remove `using Dapper` from your source.
 * Add `using kasthack.Autotagging.DapperProxy` to source files / global using.
 * (optionally) Set `TaggingSqlMapper.AppName`
-* Boom! All database queries sent through dapper start with the comment
+* Boom! All database queries sent through dapper start with the comment:
 
 ```sql
 -- App: {app_name}
@@ -35,4 +35,8 @@ I needed to tag database queries in an existing project without rewriting tons o
 <your query>
 ```
 
-* Now your DBAs and devops can easily deal detect sources of problematic queries.
+* Now your DBAs and devops can easily detect sources of problematic queries and deal with them.
+
+## How does it work
+
+* Source generator that mirrors all dapper methods, adds `[Callel(MemberName|FilePath|LineNumber)]` parameters to these methods, and prepends them to queries.
