@@ -2,8 +2,8 @@
 
 ## What
 
-[![Nuget](https://img.shields.io/nuget/v/kasthack.roi.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
-[![NuGet](https://img.shields.io/nuget/dt/kasthack.roi.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
+[![Nuget](https://img.shields.io/nuget/v/kasthack.autotagging.dapperproxy.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
+[![NuGet](https://img.shields.io/nuget/dt/kasthack.autotagging.dapperproxy.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
 [![GitHub release](https://img.shields.io/github/release/kasthack-labs/kasthack.AutoTagging.svg)](https://github.com/kasthack-labs/kasthack.AutoTagging/releases/latest)
 [![license](https://img.shields.io/github/license/kasthack-labs/kasthack.AutoTagging.svg)](LICENSE)
 [![.NET Status](https://github.com/kasthack-labs/kasthack.AutoTagging/workflows/.NET/badge.svg)](https://github.com/kasthack-labs/kasthack.AutoTagging/actions?query=workflow%3A.NET)
