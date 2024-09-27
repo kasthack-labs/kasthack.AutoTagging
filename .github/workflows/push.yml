@@ -1,4 +1,4 @@
-name: .NET
+name: Nuget push
 
 defaults:
   run:
@@ -6,14 +6,12 @@ defaults:
 on:
   push:
     branches: [ master ]
-  pull_request:
-    branches: [ master ]
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: ['8.0.x' ]
+        dotnet-version: ['6.0.x' ]
     steps:
       - uses: actions/checkout@v3
       - name: Setup .NET Core SDK ${{ matrix.dotnet-version }}
@@ -24,5 +22,7 @@ jobs:
         run: dotnet restore
       - name: Build
         run: dotnet build --configuration Release --no-restore
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
+      - name: Push
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: dotnet nuget push -s https://api.nuget.org/v3/index.json -k $NUGET_TOKEN **/*.nupkg

@@ -1,27 +1,38 @@
-# kasthack.[project]
+# kasthack.AutoTagging
 
 ## What
 
-[![Github All Releases](https://img.shields.io/github/downloads/kasthack-labs/kasthack.[project]/total.svg)](https://github.com/kasthack-labs/kasthack.[project]/releases/latest)
-[![GitHub release](https://img.shields.io/github/release/kasthack-labs/kasthack.[project].svg)](https://github.com/kasthack-labs/kasthack.[project]/releases/latest)
-[![license](https://img.shields.io/github/license/kasthack-labs/kasthack.[project].svg)](LICENSE)
-[![.NET Status](https://github.com/kasthack-labs/kasthack.[project]/workflows/.NET/badge.svg)](https://github.com/kasthack-labs/kasthack.[project]/actions?query=workflow%3A.NET)
+[![Nuget](https://img.shields.io/nuget/v/kasthack.roi.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
+[![NuGet](https://img.shields.io/nuget/dt/kasthack.roi.svg)](https://www.nuget.org/packages/kasthack.autotagging.dapperproxy/)
+[![GitHub release](https://img.shields.io/github/release/kasthack-labs/kasthack.AutoTagging.svg)](https://github.com/kasthack-labs/kasthack.AutoTagging/releases/latest)
+[![license](https://img.shields.io/github/license/kasthack-labs/kasthack.AutoTagging.svg)](LICENSE)
+[![.NET Status](https://github.com/kasthack-labs/kasthack.AutoTagging/workflows/.NET/badge.svg)](https://github.com/kasthack-labs/kasthack.AutoTagging/actions?query=workflow%3A.NET)
 [![Patreon pledges](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dkasthack%26type%3Dpledges&style=flat)](https://patreon.com/kasthack)
 [![Patreon patrons](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3Dkasthack%26type%3Dpatrons&style=flat)](https://patreon.com/kasthack)
 
+Automatic SQL tagging proxies for .NET:
+
+* Dapper is currently supported
+* I'm working on custom DbConnection proxy.
+
 ## Why does this exist
 
-I'm tired of having to set up new repos and having slightly different settings.
+I needed to tag database queries in an existing project without rewriting tons of code.
 
 ## Usage
 
-Use this repo as a template when creating a repo on github.
+* Install nuget package `kasthack.Autotagging.DapperProxy`
+* Remove `using Dapper` from your source.
+* Add `using kasthack.Autotagging.DapperProxy` to source files / global using.
+* (optionally) Set `TaggingSqlMapper.AppName`
+* Boom! All database queries sent through dapper start with the comment
 
-```
-Usage:
-  kasthack.[project] [options]
+```sql
+-- App: {app_name}
+-- File: {callerFile}:{callerLine}
+-- Method: {callerMethod}
 
-Options:
-  --version                               Show version information
-  -?, -h, --help                          Show help and usage information
+<your query>
 ```
+
+* Now your DBAs and devops can easily deal detect sources of problematic queries.
