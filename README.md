@@ -12,20 +12,20 @@
 
 Automatic SQL tagging proxies for .NET:
 
-* Dapper is currently supported
-* I'm working on custom DbConnection proxy.
+* `Dapper` is currently supported.
+* A custom `DbConnection` proxy that would be able to capture proper tags without recompilation is in development.
 
-## Why does this exist
+## Why does this exist?
 
-I needed to tag database queries in an existing project without rewriting tons of code.
+I needed a way to tag database queries in an existing project without having to rewrite a large amount of code.
 
 ## Usage
 
 * Install nuget package `kasthack.Autotagging.DapperProxy`
-* Remove `using Dapper` from your source.
-* Add `using kasthack.Autotagging.DapperProxy` to source files / global using.
-* (optionally) Set `TaggingSqlMapper.AppName`
-* Boom! All database queries sent through dapper start with the comment:
+* Remove `using Dapper` from your source files.
+* Add `using kasthack.Autotagging.DapperProxy` to your source files or as a global using.
+* (Optional) Set `TaggingSqlMapper.AppName`
+* That's it! All database queries sent through Dapper will be prefixed with the following comment:
 
 ```sql
 -- App: {app_name}
@@ -35,8 +35,9 @@ I needed to tag database queries in an existing project without rewriting tons o
 <your query>
 ```
 
-* Now your DBAs and devops can easily detect sources of problematic queries and deal with them.
+* This allows your DBAs and DevOps teams to easily identify the sources of problematic queries and address them.
 
-## How does it work
+## How does it work?
 
-* Source generator that mirrors all dapper methods, adds `[Callel(MemberName|FilePath|LineNumber)]` parameters to these methods, and prepends them to queries.
+* [Source generator](src/dapper/kasthack.Autotagging.DapperProxySourceGenerator/DapperSourceGenerator.cs) mirrors all Dapper methods, adds optional `[Caller(MemberName|FilePath|LineNumber)]` parameters to these methods, and generates a [nuget-package](https://nuget.org/packages/kasthack.Autotagging.DapperProxy) with proxying extension methods.
+* Your code automatically picks up matching overloads, while the compiler fills in caller information during the build.
