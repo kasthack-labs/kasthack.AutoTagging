@@ -29,8 +29,8 @@ I needed a way to tag database queries in an existing project without having to 
 
 ```sql
 -- App: {app_name}
--- File: {callerFile}:{callerLine}
 -- Method: {callerMethod}
+-- File: {callerFile}:{callerLine}
 
 <your query>
 ```

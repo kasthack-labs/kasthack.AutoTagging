@@ -2,18 +2,19 @@
 
 internal static class QueryTagger
 {
-    private const string appTagPrefix = "-- App:";
+    private const string AppTagPrefix = "-- App:";
+
     public static string? ApplyTag(string query, string appName, string callerMethod, string callerFile, int callerLine)
     {
-        if (query == null || query.StartsWith(appTagPrefix, StringComparison.OrdinalIgnoreCase))
+        if (query == null || query.StartsWith(AppTagPrefix, StringComparison.OrdinalIgnoreCase))
         {
             return query;
         }
 
         return $"""
-        {appTagPrefix} {appName}
-        -- File: {callerFile}:{callerLine}
+        {AppTagPrefix} {appName}
         -- Method: {callerMethod}
+        -- File: {callerFile}:{callerLine}
         {query}
         """;
     }

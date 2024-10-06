@@ -11,15 +11,21 @@ using Microsoft.CodeAnalysis;
 
 using Namotion.Reflection;
 
-[Generator]
-public class DapperSourceGenerator : ISourceGenerator
+[Generator(LanguageNames.CSharp)]
+public class DapperSourceGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext _) { }
+    /*
+     * There's a bug in visual studio: it doesn't reload source generator assemblies after loading them.
+     * Use console builds for testing.
+     * see: https://github.com/dotnet/roslyn/issues/48083
+     */
+    public void Initialize(IncrementalGeneratorInitializationContext context)
+        => context.RegisterPostInitializationOutput(ctx => ctx.AddSource("dapper-proxy.g.cs", this.BuildSource()));
 
-    public void Execute(GeneratorExecutionContext context)
+    private string BuildSource()
     {
         Type mapper = typeof(SqlMapper);
-        System.Collections.Generic.List<MethodInfo> extensionMethods = mapper.GetMethods(BindingFlags.Static | BindingFlags.Public)
+        List<MethodInfo> extensionMethods = mapper.GetMethods(BindingFlags.Static | BindingFlags.Public)
             .Where(m => m.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false))
             .ToList();
 
@@ -40,15 +46,21 @@ public class DapperSourceGenerator : ISourceGenerator
                     .SingleOrDefault(a => a.Name is "sql" or "command");
 
                 if (taggedParameter == null)
+                {
                     return null;
+                }
 
-                System.Collections.Generic.IEnumerable<string> signatureParameters = targetMethodParameters
-                    .Select((p, idx) => $"{(idx == 0 ? "this " : string.Empty)}{this.GetGenericTypeName(p.ParameterType)} {p.Name}{(!p.HasDefaultValue ? string.Empty : $" = {this.DefaultParam(p)}")}");
+                IEnumerable<string> signatureParameters = targetMethodParameters
+                    .Select((p, idx) => $"{(idx == 0 ? "this " : string.Empty)}{this.GetCSharpGenericTypeName(p.ParameterType)} {p.Name}{(!p.HasDefaultValue ? string.Empty : $" = {this.GetCSharpDefaultParameter(p)}")}");
 
-                string returnTypeName = this.GetGenericTypeName(m.ReturnType);
-                System.Collections.Generic.IEnumerable<string> signatureGenericArguments = m.GetGenericArguments().Select(a => this.Name(a));
+                string returnTypeName = this.GetCSharpGenericTypeName(m.ReturnType);
+                IEnumerable<string> signatureGenericArguments = m.GetGenericArguments().Select(a => this.GetCSharpTypeName(a));
                 string genericArgString = signatureGenericArguments.Any() ? $"<{string.Join(", ", signatureGenericArguments)}>" : string.Empty;
                 string signature = $"public static {returnTypeName} {m.Name}{genericArgString}({string.Join(", ", signatureParameters)}{extraArgs})";
+
+                // Some dapper methods are missing docs, so I reuse docs from the methods with matching names.
+                // There're warnings about parameter mismatch but that's better than nothing.
+                // If you actually care, you can implement a parameter matching scheme.
                 var docTag = m.GetXmlDocsElement()?.ToString();
                 if (docTag == null)
                 {
@@ -63,8 +75,7 @@ public class DapperSourceGenerator : ISourceGenerator
                     "\n",
                     (
                        docTag
-                            ?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? ["//no doc"]
-                    )
+                            ?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? ["//no doc"])
                     .Concat([
                         @"<param name=""callerMethod"">Auto-captured method for tagging</param>",
                         @"<param name=""callerFile"">Auto-captured file for tagging</param>",
@@ -95,16 +106,16 @@ public class DapperSourceGenerator : ISourceGenerator
 
         public static partial class TaggingSqlMapper
         {
-            public static string Dummy => @"";
+            private static string Dummy => @"";
         {{string.Join($"\n", methods)}}
         }
         """;
 
         // Add the source code to the compilation
-        context.AddSource($"dapper.g.cs", source);
+        return source;
     }
 
-    private string DefaultParam(ParameterInfo p)
+    private string GetCSharpDefaultParameter(ParameterInfo p)
     {
         if (p.DefaultValue == null)
         {
@@ -124,14 +135,14 @@ public class DapperSourceGenerator : ISourceGenerator
         return p.DefaultValue.ToString().ToLowerInvariant();
     }
 
-    private string GetGenericTypeName(Type type)
+    private string GetCSharpGenericTypeName(Type type)
     {
         return type.IsGenericType
-            ? $"{this.Name(type.GetGenericTypeDefinition()).Split('`').First()}<{string.Join(", ", type.GetGenericArguments().Select(a => this.GetGenericTypeName(a)))}>"
-            : this.Name(type);
+            ? $"{this.GetCSharpTypeName(type.GetGenericTypeDefinition()).Split('`').First()}<{string.Join(", ", type.GetGenericArguments().Select(a => this.GetCSharpGenericTypeName(a)))}>"
+            : this.GetCSharpTypeName(type);
     }
 
-    private string Name(Type type) => (type.FullName ?? type.Name).Replace("+", ".") switch
+    private string GetCSharpTypeName(Type type) => (type.FullName ?? type.Name).Replace("+", ".") switch
     {
         "System.Void" => "void",
         string s => s,
