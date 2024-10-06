@@ -6,7 +6,7 @@ internal static class QueryTagger
 
     public static string? ApplyTag(string query, string appName, string callerMethod, string callerFile, int callerLine)
     {
-        if (query == null || query.StartsWith(AppTagPrefix, StringComparison.OrdinalIgnoreCase))
+        if (query?.StartsWith(AppTagPrefix, StringComparison.OrdinalIgnoreCase) ?? true)
         {
             return query;
         }

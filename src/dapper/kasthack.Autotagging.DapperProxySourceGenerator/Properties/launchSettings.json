@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DapperProxy": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\kasthack.Autotagging.DapperProxy\\kasthack.Autotagging.DapperProxy.csproj"
+    }
+  }
+}
