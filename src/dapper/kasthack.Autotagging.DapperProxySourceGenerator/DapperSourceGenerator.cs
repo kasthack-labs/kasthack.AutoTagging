@@ -1,31 +1,38 @@
 ﻿namespace kasthack.Autotagging.DapperProxySourceGenerator;
 
+using Dapper;
+using Microsoft.CodeAnalysis;
+using Namotion.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-using Dapper;
-
-using Microsoft.CodeAnalysis;
-
-using Namotion.Reflection;
-
 [Generator(LanguageNames.CSharp)]
-public class DapperSourceGenerator : IIncrementalGenerator
+public class DapperSourceGenerator : ISourceGenerator
 {
+    private const string OutputFileName = "dapper-proxy.g.cs";
+
+    public void Execute(GeneratorExecutionContext context) => context.AddSource(OutputFileName, this.BuildSource());
+
+    // ISourceGenerator
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+
     /*
-     * There's a bug in visual studio: it doesn't reload source generator assemblies after loading them.
-     * Use console builds for testing.
-     * see: https://github.com/dotnet/roslyn/issues/48083
-     */
+     * IIncrementalGenerator
+    * There's a bug in visual studio: it doesn't reload source generator assemblies after loading them.
+    * Use console builds for testing.
+    * see: https://github.com/dotnet/roslyn/issues/48083
+    */
     public void Initialize(IncrementalGeneratorInitializationContext context)
-        => context.RegisterPostInitializationOutput(ctx => ctx.AddSource("dapper-proxy.g.cs", this.BuildSource()));
+        => context.RegisterPostInitializationOutput(ctx => ctx.AddSource(OutputFileName, this.BuildSource()));
 
     private string BuildSource()
     {
-        Type mapper = typeof(SqlMapper);
-        List<MethodInfo> extensionMethods = mapper.GetMethods(BindingFlags.Static | BindingFlags.Public)
+        Type dapperMapperType = typeof(SqlMapper);
+        List<MethodInfo> extensionMethods = dapperMapperType.GetMethods(BindingFlags.Static | BindingFlags.Public)
             .Where(m => m.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false))
             .ToList();
 
@@ -33,7 +40,7 @@ public class DapperSourceGenerator : IIncrementalGenerator
         List<string> methods = extensionMethods
             .Select(m =>
             {
-                string extraArgs = @", [CallerMemberName] string callerMethod = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = -1";
+                const string extraArgs = ", [CallerMemberName] string callerMethod = null, [CallerFilePath] string callerFile = null, [CallerLineNumber] int callerLine = -1";
 
                 ParameterInfo[] targetMethodParameters = m.GetParameters();
 
@@ -75,7 +82,11 @@ public class DapperSourceGenerator : IIncrementalGenerator
                     "\n",
                     (
                        docTag
-                            ?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries) ?? ["//no doc"])
+                            ?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                            ??
+                            throw new Exception("No doc!")
+                            //["//no doc"]
+                    )
                     .Concat([
                         @"<param name=""callerMethod"">Auto-captured method for tagging</param>",
                         @"<param name=""callerFile"">Auto-captured file for tagging</param>",
@@ -107,7 +118,7 @@ public class DapperSourceGenerator : IIncrementalGenerator
         public static partial class TaggingSqlMapper
         {
             private static string Dummy => @"";
-        {{string.Join($"\n", methods)}}
+        {{string.Join("\n", methods)}}
         }
         """;
 
@@ -124,7 +135,7 @@ public class DapperSourceGenerator : IIncrementalGenerator
 
         if (p.ParameterType.IsEnum)
         {
-            return p.ParameterType.FullName + "." + p.DefaultValue.ToString();
+            return p.ParameterType.FullName + "." + p.DefaultValue;
         }
 
         if (p.ParameterType == typeof(string))
@@ -138,7 +149,7 @@ public class DapperSourceGenerator : IIncrementalGenerator
     private string GetCSharpGenericTypeName(Type type)
     {
         return type.IsGenericType
-            ? $"{this.GetCSharpTypeName(type.GetGenericTypeDefinition()).Split('`').First()}<{string.Join(", ", type.GetGenericArguments().Select(a => this.GetCSharpGenericTypeName(a)))}>"
+            ? $"{this.GetCSharpTypeName(type.GetGenericTypeDefinition()).Split('`').First()}<{string.Join(", ", type.GetGenericArguments().Select(this.GetCSharpGenericTypeName))}>"
             : this.GetCSharpTypeName(type);
     }
 

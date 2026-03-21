@@ -6,16 +6,16 @@ internal static class QueryTagger
 
     public static string? ApplyTag(string query, string appName, string callerMethod, string callerFile, int callerLine)
     {
-        if (query?.StartsWith(AppTagPrefix, StringComparison.OrdinalIgnoreCase) ?? true)
+        if (!(query?.StartsWith(AppTagPrefix, StringComparison.OrdinalIgnoreCase) ?? true))
         {
-            return query;
+            query = $"""
+                    {AppTagPrefix} {appName}
+                    -- Method: {callerMethod}
+                    -- File: {callerFile}:{callerLine}
+                    {query}
+                    """;
         }
 
-        return $"""
-        {AppTagPrefix} {appName}
-        -- Method: {callerMethod}
-        -- File: {callerFile}:{callerLine}
-        {query}
-        """;
+        return query;
     }
 }

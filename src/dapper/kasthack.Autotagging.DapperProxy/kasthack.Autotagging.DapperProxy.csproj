@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<EnforceExtendedAnalyzers>true</EnforceExtendedAnalyzers>
+		<!--<EnforceExtendedAnalyzers>true</EnforceExtendedAnalyzers>-->
 		<PackageVersion>0.1.5</PackageVersion>
 		<PackageDescription>Automatic query tagging extension for dapper</PackageDescription>
 		<PackageTags>kasthack dapper query-tagging telemetry sql</PackageTags>
 		<PackageProjectUrl>https://github.com/kasthack-labs/kasthack.Autotagging</PackageProjectUrl>
 		<!--
 		if you want to debug the source generator, uncomment options below to enable saving the output 
+		-->
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		-->
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference
